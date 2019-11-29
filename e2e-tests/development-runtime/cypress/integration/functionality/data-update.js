@@ -17,7 +17,7 @@ describe(`on new file`, () => {
   it(`re-runs GraphQL queries with new file contents`, () => {
     const content = JSON.stringify(FILE_CONTENT)
     cy.exec(
-      `npm run update -- --file content/sample.md --file-content \\"${content}\\"`
+      `npm run update -- --file content/new-file.md --file-content \\"${content}\\"`
     )
 
     cy.get(`ul`)
@@ -27,28 +27,20 @@ describe(`on new file`, () => {
 })
 
 describe(`on schema change`, () => {
-  before(() => {
-    const content = JSON.stringify(FILE_CONTENT)
-    cy.exec(
-      `npm run update -- --file content/sample.md --file-content \\"${content}\\"`
-    )
+  beforeEach(() => {
     cy.visit(`/`).waitForRouteChange()
-  })
-  after(() => {
-    cy.exec(
-      `npm run update -- --file src/pages/schema-rebuild.js --exact --replacements "foo:# foo"`
-    )
   })
 
   it(`rebuilds GraphQL schema`, () => {
+    const content = JSON.stringify(FILE_CONTENT)
     cy.exec(
-      `npm run update -- --file content/sample.md --exact --replacements "# foo:foo"`
+      `npm run update -- --file content/new-file.md --exact --replacements "# foo:foo" --file-content \\"${content}\\"`
     )
     cy.exec(
       `npm run update -- --file src/pages/schema-rebuild.js --exact --replacements "# foo:foo"`
     )
 
-    cy.visit(`/schema-rebuild/`)
+    cy.visit(`/schema-rebuild/`).waitForRouteChange()
     cy.get(`p`).contains(`"foo":"freshField"`)
   })
 })
